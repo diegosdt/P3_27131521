@@ -37,7 +37,6 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
-
 /**
  * @swagger
  * components:
@@ -57,8 +56,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *               type: string
  *             seccion:
  *               type: string
+ *       example:
+ *         status: success
+ *         data:
+ *           nombreCompleto: "Diego Salvador Duarte Tua"
+ *           cedula: "27131521"
+ *           seccion: "Seccion 2"
  */
-
+// ...existing code...
 /**
  * @swagger
  * /about:
@@ -72,7 +77,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AboutResponse'
+ *             example:
+ *               status: success
+ *               data:
+ *                 nombreCompleto: "Diego Salvador Duarte Tua"
+ *                 cedula: "27131521"
+ *                 seccion: "Seccion 2"
  */
+
+
 app.get('/about', function(req, res) {
   // mis datos uwu
   const studentInfo = {
