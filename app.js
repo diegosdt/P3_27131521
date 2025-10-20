@@ -25,7 +25,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'https://p3-27131521.onrender.com/ping',
+        url: 'http://localhost:3000',
         description: 'Servidor de desarrollo',
       },
     ],
