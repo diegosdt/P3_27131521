@@ -2,11 +2,11 @@ var express = require('express');
 var router = express.Router();
 
 
-
-
-app.get('/', (req, res) => {
-  res.send('API RESTful activa. Visita /about o /api-docs.');
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'Express' });
 });
+
+
 
 
 
