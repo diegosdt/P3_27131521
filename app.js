@@ -24,6 +24,12 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     servers: [
+
+{
+        url: 'https://p3-27131521.onrender.com', 
+        description: 'Servidor en producción',
+      },
+
       {
         url: 'http://localhost:3000',
         description: 'Servidor de desarrollo',
