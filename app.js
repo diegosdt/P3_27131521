@@ -2,6 +2,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const cors = require('cors');
 
 var app = express();
 
@@ -10,6 +11,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ✅ Configuración COMPLETA de CORS para Swagger
+app.use(cors({
+  origin: true, // Permite el origen actual
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+// Manejar preflight requests explícitamente
+app.options('*', cors());
 
 // Configuración de Swagger
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -24,24 +36,38 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     servers: [
-
-{
-        url: 'https://p3-27131521.onrender.com', 
-        description: 'Servidor en producción',
-      },
-
       {
-        url: 'http://localhost:3000',
+        url: 'http://localhost:3000', // ⚠️ PON PRIMERO LOCALHOST para desarrollo
         description: 'Servidor de desarrollo',
+      },
+      {
+        url: 'https://nombre-del-servicio.onrender.com',
+        description: 'Servidor en producción',
       },
     ],
   },
-  apis: ['./app.js'], // archivo donde está la documentación
+  apis: ['./app.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// ✅ Configuración específica para Swagger UI con CORS
+app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
+  swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      url: '/swagger.json', // Usar archivo local en lugar de fetch
+      persistAuthorization: true,
+    },
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: "API P3 - Documentación"
+  })(req, res, next);
+});
+
+// ✅ Ruta para servir el spec de Swagger como JSON local
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 /**
  * @swagger
@@ -69,7 +95,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *           cedula: "27131521"
  *           seccion: "Seccion 2"
  */
-// ...existing code...
+
 /**
  * @swagger
  * /about:
@@ -83,17 +109,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AboutResponse'
- *             example:
- *               status: success
- *               data:
- *                 nombreCompleto: "Diego Salvador Duarte Tua"
- *                 cedula: "27131521"
- *                 seccion: "Seccion 2"
  */
-
-
 app.get('/about', function(req, res) {
-  // mis datos uwu
   const studentInfo = {
     status: 'success',
     data: {
@@ -116,10 +133,10 @@ app.get('/about', function(req, res) {
  *         description: Servidor funcionando correctamente
  */
 app.get('/ping', function(req, res) {
-  res.status(200).end();
+  res.status(200).json({ status: 'success', message: 'pong' });
 });
 
-// Manejo de mis rutas no encontradas
+// Manejo de rutas no encontradas
 app.use(function(req, res, next) {
   res.status(404).json({
     status: 'error',
@@ -127,7 +144,13 @@ app.use(function(req, res, next) {
   });
 });
 
-
-
+// Manejo de errores global
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).json({
+    status: 'error',
+    message: 'Error interno del servidor'
+  });
+});
 
 module.exports = app;
