@@ -12,15 +12,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Configuración COMPLETA de CORS para Swagger
+// ✅ Configuración de CORS para producción
 app.use(cors({
-  origin: true, // Permite el origen actual
+  origin: 'https://p3-27131521.onrender.com/', // 🔁 Reemplaza con tu dominio real en Render
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Manejar preflight requests explícitamente
+// Manejar preflight requests
 app.options('*', cors());
 
 // Configuración de Swagger
@@ -37,11 +37,11 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000', // ⚠️ PON PRIMERO LOCALHOST para desarrollo
+        url: 'http://localhost:3000',
         description: 'Servidor de desarrollo',
       },
       {
-        url: 'https://nombre-del-servicio.onrender.com',
+        url: 'https://p3-27131521.onrender.com/', // 🔁 Reemplaza con tu dominio real
         description: 'Servidor en producción',
       },
     ],
@@ -51,22 +51,16 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// ✅ Configuración específica para Swagger UI con CORS
+// ✅ Usar spec directamente para evitar errores de fetch
 app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
   swaggerUi.setup(swaggerSpec, {
     swaggerOptions: {
-      url: '/swagger.json', // Usar archivo local en lugar de fetch
+      spec: swaggerSpec,
       persistAuthorization: true,
     },
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: "API P3 - Documentación"
   })(req, res, next);
-});
-
-// ✅ Ruta para servir el spec de Swagger como JSON local
-app.get('/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
 });
 
 /**
