@@ -133,7 +133,7 @@ app.get('/about', function(req, res) {
  *         description: Servidor funcionando correctamente
  */
 app.get('/ping', function(req, res) {
-  res.status(200).json({ status: 'success', message: 'pong' });
+  res.status(200).json({ estado: '200 OK' });
 });
 
 // Manejo de rutas no encontradas
