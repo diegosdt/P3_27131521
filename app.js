@@ -12,18 +12,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Configuración de CORS para producción
+//Configuración de CORS
 app.use(cors({
-  origin: 'https://p3-27131521.onrender.com/', // 🔁 Reemplaza con tu dominio real en Render
+  origin: 'https://p3-27131521.onrender.com/', 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Manejar preflight requests
+
 app.options('*', cors());
 
-// Configuración de Swagger
+// Configuración de Swagger :D
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -36,12 +36,9 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     servers: [
+    
       {
-        url: 'http://localhost:3000',
-        description: 'Servidor de desarrollo',
-      },
-      {
-        url: 'https://p3-27131521.onrender.com/', // 🔁 Reemplaza con tu dominio real
+        url: 'https://p3-27131521.onrender.com/', // mi servidor de uso. tenia el local pero como lo subi a render lo borre y solo deje render para que no haya confusion 
         description: 'Servidor en producción',
       },
     ],
@@ -51,7 +48,7 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// ✅ Usar spec directamente para evitar errores de fetch
+
 app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
   swaggerUi.setup(swaggerSpec, {
     swaggerOptions: {
@@ -138,7 +135,7 @@ app.use(function(req, res, next) {
   });
 });
 
-// Manejo de errores global
+// Manejo de errores globales
 app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).json({
