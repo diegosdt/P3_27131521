@@ -3,6 +3,12 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
+const sequelize = require('./src/config/database');
+const User = require('./src/models/user');
+
+sequelize.sync()
+  .then(() => console.log('Base de datos sincronizada'))
+  .catch(err => console.error('Error al sincronizar DB:', err));
 
 var app = express();
 
@@ -11,6 +17,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+const authRoutes = require('./src/routes/auth');
+const userRoutes = require('./src/routes/users');
+
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+
 
 //Configuración de CORS
 app.use(cors({
@@ -36,14 +49,18 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     servers: [
-    
+     {
+        url: 'http://localhost:3000', // ← usa localhost para pruebas locales
+        description: 'Servidor local de desarrollo',
+      },
       {
         url: 'https://p3-27131521.onrender.com/', // mi servidor de uso. tenia el local pero como lo subi a render lo borre y solo deje render para que no haya confusion 
         description: 'Servidor en producción',
       },
     ],
   },
-  apis: ['./app.js'],
+ apis: ['./app.js', './src/routes/*.js'],
+
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -143,5 +160,9 @@ app.use(function(err, req, res, next) {
     message: 'Error interno del servidor'
   });
 });
+
+
+
+
 
 module.exports = app;
