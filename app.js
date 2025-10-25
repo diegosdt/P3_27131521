@@ -58,6 +58,21 @@ const swaggerOptions = {
         description: 'Servidor en producción',
       },
     ],
+    components: {
+  securitySchemes: {
+    bearerAuth: {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT'
+    }
+  }
+},
+security: [
+  {
+    bearerAuth: []
+  }
+]
+
   },
  apis: ['./app.js', './src/routes/*.js'],
 
