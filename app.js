@@ -49,10 +49,7 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     servers: [
-     {
-        url: 'http://localhost:3000', // ← usa localhost para pruebas locales
-        description: 'Servidor local de desarrollo',
-      },
+     
       {
         url: 'https://p3-27131521.onrender.com/', // mi servidor de uso. tenia el local pero como lo subi a render lo borre y solo deje render para que no haya confusion 
         description: 'Servidor en producción',
