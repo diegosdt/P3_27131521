@@ -1,42 +1,48 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 const cors = require('cors');
 const sequelize = require('./src/config/database');
 const User = require('./src/models/user');
 
+// Sincronización de la base de datos
 sequelize.sync()
   .then(() => console.log('Base de datos sincronizada'))
   .catch(err => console.error('Error al sincronizar DB:', err));
 
-var app = express();
+const app = express();
 
+// Middlewares
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Rutas principales
 const authRoutes = require('./src/routes/auth');
 const userRoutes = require('./src/routes/users');
+const bookRoutes = require('./src/routes/books');
+const categoryRoutes = require('./src/routes/categories');
+const tagRoutes = require('./src/routes/tags');
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/books', bookRoutes);
+app.use('/categories', categoryRoutes);
+app.use('/tags', tagRoutes);
 
-
-//Configuración de CORS
+// CORS
 app.use(cors({
-  origin: 'https://p3-27131521.onrender.com/', 
+  origin: 'https://p3-27131521.onrender.com/',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
-
-
 app.options('*', cors());
 
-// Configuración de Swagger :D
+// Swagger
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
@@ -48,35 +54,103 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API RESTful para el proyecto P3',
     },
-    servers: [
-     
+    tags: [
       {
-        url: 'https://p3-27131521.onrender.com/', // mi servidor de uso. tenia el local pero como lo subi a render lo borre y solo deje render para que no haya confusion 
-        description: 'Servidor en producción',
+        name: 'Admin - Books',
+        description: 'Gestión de libros (CRUD protegido)'
       },
+      {
+        name: 'Public - Books',
+        description: 'Consulta pública de libros (listado y self-healing)'
+      },
+      {
+        name: 'Admin - Categories',
+        description: 'Gestión de categorías (CRUD protegido)'
+      },
+      {
+        name: 'Admin - Tags',
+        description: 'Gestión de etiquetas (CRUD protegido)'
+      }
     ],
     components: {
-  securitySchemes: {
-    bearerAuth: {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT'
-    }
-  }
-},
-security: [
-  {
-    bearerAuth: []
-  }
-]
-
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      },
+      schemas: {
+        Book: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            title: { type: 'string' },
+            description: { type: 'string' },
+            price: { type: 'number' },
+            stock: { type: 'integer' },
+            author: { type: 'string' },
+            publisher: { type: 'string' },
+            publicationYear: { type: 'integer' },
+            language: { type: 'string' },
+            format: { type: 'string' },
+            slug: { type: 'string' },
+            CategoryId: { type: 'integer' },
+            Tags: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Tag' }
+            }
+          }
+        },
+        Category: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' },
+            description: { type: 'string' }
+          }
+        },
+        Tag: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            name: { type: 'string' }
+          }
+        },
+        AboutResponse: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', example: 'success' },
+            data: {
+              type: 'object',
+              properties: {
+                nombreCompleto: { type: 'string' },
+                cedula: { type: 'string' },
+                seccion: { type: 'string' }
+              }
+            }
+          },
+          example: {
+            status: 'success',
+            data: {
+              nombreCompleto: 'Diego Salvador Duarte Tua',
+              cedula: '27131521',
+              seccion: 'Seccion 2'
+            }
+          }
+        }
+      }
+    },
+    security: [
+      {
+        bearerAuth: []
+      }
+    ]
   },
- apis: ['./app.js', './src/routes/*.js'],
-
+  apis: ['./app.js', './src/routes/*.js']
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
 
 app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
   swaggerUi.setup(swaggerSpec, {
@@ -88,33 +162,6 @@ app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
     customSiteTitle: "API P3 - Documentación"
   })(req, res, next);
 });
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     AboutResponse:
- *       type: object
- *       properties:
- *         status:
- *           type: string
- *           example: success
- *         data:
- *           type: object
- *           properties:
- *             nombreCompleto:
- *               type: string
- *             cedula:
- *               type: string
- *             seccion:
- *               type: string
- *       example:
- *         status: success
- *         data:
- *           nombreCompleto: "Diego Salvador Duarte Tua"
- *           cedula: "27131521"
- *           seccion: "Seccion 2"
- */
 
 /**
  * @swagger
@@ -172,9 +219,5 @@ app.use(function(err, req, res, next) {
     message: 'Error interno del servidor'
   });
 });
-
-
-
-
 
 module.exports = app;

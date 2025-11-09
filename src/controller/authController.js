@@ -1,13 +1,13 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user'); // Asegúrate de que el archivo se llame exactamente "User.js"
+const User = require('../models/user'); 
 const { secret, expiresIn } = require('../config/jwt');
 
 exports.register = async (req, res) => {
   const { fullName, email, password } = req.body;
 
   try {
-    // Validación básica
+    // Validación 
     if (!fullName || !email || !password) {
       return res.status(400).json({
         status: 'fail',
@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Verificar si el email ya está registrado
+    
     const exists = await User.findOne({ where: { email } });
     if (exists) {
       return res.status(400).json({
@@ -24,17 +24,17 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Hashear la contraseña
+    
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Crear el usuario
+    
     const user = await User.create({
       fullName,
       email,
       password: hashedPassword
     });
 
-    // Respuesta exitosa sin exponer la contraseña
+    
     res.status(201).json({
       status: 'success',
       data: {
@@ -56,7 +56,7 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validación básica
+    // Validación 
     if (!email || !password) {
       return res.status(400).json({
         status: 'fail',
@@ -82,7 +82,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generar el token JWT
+    // Generar el token JWT firma digital
     const token = jwt.sign(
       { id: user.id, email: user.email },
       secret,
