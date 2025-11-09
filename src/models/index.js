@@ -1,6 +1,6 @@
 const Book = require('./book');
-const Category = require('./Category');
-const Tag = require('./Tag');
+const Category = require('./category');
+const Tag = require('./tag');
 
 Book.belongsTo(Category);
 Category.hasMany(Book);
