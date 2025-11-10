@@ -89,11 +89,16 @@ router.delete('/:id', auth, controller.remove);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Book'
+ *             $ref: '#/components/schemas/BookInput'
  *     responses:
  *       201:
  *         description: Libro creado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Book'
  */
+
 
 /**
  * @swagger

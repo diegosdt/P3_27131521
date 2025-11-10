@@ -8,7 +8,6 @@ router.post('/', auth, controller.create);
 router.put('/:id', auth, controller.update);
 router.delete('/:id', auth, controller.remove);
 
-
 /**
  * @swagger
  * /categories:
@@ -20,6 +19,12 @@ router.delete('/:id', auth, controller.remove);
  *     responses:
  *       200:
  *         description: Lista de categorías
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Category'
  */
 
 /**
@@ -35,10 +40,14 @@ router.delete('/:id', auth, controller.remove);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'
+ *             $ref: '#/components/schemas/CategoryInput'
  *     responses:
  *       201:
  *         description: Categoría creada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
  */
 
 /**
@@ -53,16 +62,21 @@ router.delete('/:id', auth, controller.remove);
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'
+ *             $ref: '#/components/schemas/CategoryInput'
  *     responses:
  *       200:
  *         description: Categoría actualizada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Category'
  */
 
 /**
@@ -77,12 +91,12 @@ router.delete('/:id', auth, controller.remove);
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Categoría eliminada
  */
 
-
-
 module.exports = router;
+

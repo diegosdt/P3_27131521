@@ -4,7 +4,6 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 const sequelize = require('./src/config/database');
-const User = require('./src/models/user');
 
 // Sincronización de la base de datos
 sequelize.sync()
@@ -20,6 +19,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// CORS para desarrollo y producción
+app.use(cors({
+  origin: ['https://p3-27131521.onrender.com', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+app.options('*', cors());
+
 // Rutas principales
 const authRoutes = require('./src/routes/auth');
 const userRoutes = require('./src/routes/users');
@@ -32,15 +40,6 @@ app.use('/users', userRoutes);
 app.use('/books', bookRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/tags', tagRoutes);
-
-// CORS
-app.use(cors({
-  origin: 'https://p3-27131521.onrender.com/',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-}));
-app.options('*', cors());
 
 // Swagger
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -55,22 +54,10 @@ const swaggerOptions = {
       description: 'API RESTful para el proyecto P3',
     },
     tags: [
-      {
-        name: 'Admin - Books',
-        description: 'Gestión de libros (CRUD protegido)'
-      },
-      {
-        name: 'Public - Books',
-        description: 'Consulta pública de libros (listado y self-healing)'
-      },
-      {
-        name: 'Admin - Categories',
-        description: 'Gestión de categorías (CRUD protegido)'
-      },
-      {
-        name: 'Admin - Tags',
-        description: 'Gestión de etiquetas (CRUD protegido)'
-      }
+      { name: 'Admin - Books', description: 'Gestión de libros (CRUD protegido)' },
+      { name: 'Public - Books', description: 'Consulta pública de libros (listado y self-healing)' },
+      { name: 'Admin - Categories', description: 'Gestión de categorías (CRUD protegido)' },
+      { name: 'Admin - Tags', description: 'Gestión de etiquetas (CRUD protegido)' }
     ],
     components: {
       securitySchemes: {
@@ -100,6 +87,39 @@ const swaggerOptions = {
               type: 'array',
               items: { $ref: '#/components/schemas/Tag' }
             }
+          }
+        },
+        BookInput: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            description: { type: 'string' },
+            price: { type: 'number' },
+            stock: { type: 'integer' },
+            author: { type: 'string' },
+            publisher: { type: 'string' },
+            publicationYear: { type: 'integer' },
+            language: { type: 'string' },
+            format: { type: 'string' },
+            categoryId: { type: 'integer' },
+            tagIds: {
+              type: 'array',
+              items: { type: 'integer' }
+            }
+          },
+          required: ['title', 'price', 'stock', 'author', 'publisher'],
+          example: {
+            title: "Cien años de soledad",
+            description: "Novela de Gabriel García Márquez",
+            price: 25.99,
+            stock: 10,
+            author: "Gabriel García Márquez",
+            publisher: "Sudamericana",
+            publicationYear: 1967,
+            language: "Español",
+            format: "Tapa dura",
+            categoryId: 1,
+            tagIds: [2, 3]
           }
         },
         Category: {
@@ -139,13 +159,9 @@ const swaggerOptions = {
             }
           }
         }
-      }
-    },
-    security: [
-      {
-        bearerAuth: []
-      }
-    ]
+      },
+      security: [{ bearerAuth: [] }]
+    }
   },
   apis: ['./app.js', './src/routes/*.js']
 };
@@ -178,15 +194,14 @@ app.use('/api-docs', swaggerUi.serve, (req, res, next) => {
  *               $ref: '#/components/schemas/AboutResponse'
  */
 app.get('/about', function(req, res) {
-  const studentInfo = {
+  res.json({
     status: 'success',
     data: {
       nombreCompleto: 'Diego Salvador Duarte Tua',
       cedula: '27131521',
       seccion: 'Seccion 2'
     }
-  };
-  res.json(studentInfo);
+  });
 });
 
 /**
