@@ -6,7 +6,8 @@ const cors = require('cors');
 const sequelize = require('./src/config/database');
 
 // Sincronización de la base de datos
-sequelize.sync()
+sequelize.sync({ alter: true })
+
   .then(() => console.log('Base de datos sincronizada'))
   .catch(err => console.error('Error al sincronizar DB:', err));
 
