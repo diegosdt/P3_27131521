@@ -26,7 +26,6 @@ router.delete('/:id', auth, controller.remove);
  *               items:
  *                 $ref: '#/components/schemas/Category'
  */
-
 /**
  * @swagger
  * /categories:
@@ -49,7 +48,6 @@ router.delete('/:id', auth, controller.remove);
  *             schema:
  *               $ref: '#/components/schemas/Category'
  */
-
 /**
  * @swagger
  * /categories/{id}:
@@ -78,7 +76,6 @@ router.delete('/:id', auth, controller.remove);
  *             schema:
  *               $ref: '#/components/schemas/Category'
  */
-
 /**
  * @swagger
  * /categories/{id}:
@@ -97,6 +94,6 @@ router.delete('/:id', auth, controller.remove);
  *       200:
  *         description: Categoría eliminada
  */
-
 module.exports = router;
+
 

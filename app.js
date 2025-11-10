@@ -130,11 +130,33 @@ const swaggerOptions = {
             description: { type: 'string' }
           }
         },
+        CategoryInput: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            description: { type: 'string' }
+          },
+          required: ['name'],
+          example: {
+            name: "Novela",
+            description: "Libros narrativos"
+          }
+        },
         Tag: {
           type: 'object',
           properties: {
             id: { type: 'integer' },
             name: { type: 'string' }
+          }
+        },
+        TagInput: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' }
+          },
+          required: ['name'],
+          example: {
+            name: "Realismo mágico"
           }
         },
         AboutResponse: {

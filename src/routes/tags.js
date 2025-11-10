@@ -8,7 +8,6 @@ router.post('/', auth, controller.create);
 router.put('/:id', auth, controller.update);
 router.delete('/:id', auth, controller.remove);
 
-
 /**
  * @swagger
  * /tags:
@@ -21,7 +20,6 @@ router.delete('/:id', auth, controller.remove);
  *       200:
  *         description: Lista de etiquetas
  */
-
 /**
  * @swagger
  * /tags:
@@ -35,12 +33,11 @@ router.delete('/:id', auth, controller.remove);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Tag'
+ *             $ref: '#/components/schemas/TagInput'
  *     responses:
  *       201:
  *         description: Etiqueta creada
  */
-
 /**
  * @swagger
  * /tags/{id}:
@@ -53,18 +50,18 @@ router.delete('/:id', auth, controller.remove);
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Tag'
+ *             $ref: '#/components/schemas/TagInput'
  *     responses:
  *       200:
  *         description: Etiqueta actualizada
  */
-
 /**
  * @swagger
  * /tags/{id}:
@@ -77,13 +74,11 @@ router.delete('/:id', auth, controller.remove);
  *       - in: path
  *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Etiqueta eliminada
  */
-
-
-
-
 module.exports = router;
+

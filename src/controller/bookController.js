@@ -1,51 +1,103 @@
 const { Book, Category, Tag } = require('../models');
-const { findBooks } = require('../repositories/bookRepository');
-const slugify = require('slugify');
 
-exports.create = async (req, res) => {
-  const { categoryId, tagIds, ...bookData } = req.body;
-  const book = await Book.create({ ...bookData, CategoryId: categoryId });
-  if (tagIds) await book.setTags(tagIds);
-  res.status(201).json({ status: 'success', data: book });
-};
+module.exports = {
+  async getAll(req, res) {
+    try {
+      const books = await Book.findAll({
+        include: [
+          { model: Category, as: 'category' },
+          { model: Tag, as: 'tags', through: { attributes: [] } }
+        ]
+      });
+      res.status(200).json(books);
+    } catch {
+      res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
+  },
 
-exports.getById = async (req, res) => {
-  const book = await Book.findByPk(req.params.id, { include: [Category, Tag] });
-  if (!book) return res.status(404).json({ status: 'fail', message: 'Libro no encontrado' });
-  res.status(200).json({ status: 'success', data: book });
-};
+  async create(req, res) {
+    try {
+      const {
+        title, description, price, stock,
+        author, publisher, publicationYear,
+        language, format, categoryId, tagIds = []
+      } = req.body;
 
-exports.update = async (req, res) => {
-  const { categoryId, tagIds, ...bookData } = req.body;
-  const book = await Book.findByPk(req.params.id);
-  if (!book) return res.status(404).json({ status: 'fail', message: 'Libro no encontrado' });
-  await book.update({ ...bookData, CategoryId: categoryId });
-  if (tagIds) await book.setTags(tagIds);
-  res.status(200).json({ status: 'success', data: book });
-};
+      // Validaciones básicas
+      if (!title || !author || !publisher) {
+        return res.status(400).json({ mensaje: 'title, author y publisher son requeridos' });
+      }
+      if (categoryId) {
+        const cat = await Category.findByPk(categoryId);
+        if (!cat) return res.status(400).json({ mensaje: 'categoryId inválido' });
+      }
 
-exports.remove = async (req, res) => {
-  const book = await Book.findByPk(req.params.id);
-  if (!book) return res.status(404).json({ status: 'fail', message: 'Libro no encontrado' });
-  await book.destroy();
-  res.status(200).json({ status: 'success', message: 'Libro eliminado' });
-};
+      const book = await Book.create({
+        title, description, price, stock, author, publisher,
+        publicationYear, language, format, categoryId
+      });
 
-exports.getPublicBySlug = async (req, res) => {
-  const { id, slug } = req.params;
-  const book = await Book.findByPk(id);
-  if (!book) return res.status(404).json({ status: 'fail', message: 'Libro no encontrado' });
+      if (Array.isArray(tagIds) && tagIds.length) {
+        const tags = await Tag.findAll({ where: { id: tagIds } });
+        await book.setTags(tags);
+      }
 
-  const correctSlug = slugify(book.title, { lower: true });
-  if (slug !== correctSlug) {
-    return res.redirect(301, `/p/${book.id}-${correctSlug}`);
+      const result = await Book.findByPk(book.id, {
+        include: [
+          { model: Category, as: 'category' },
+          { model: Tag, as: 'tags', through: { attributes: [] } }
+        ]
+      });
+
+      res.status(201).json(result);
+    } catch {
+      res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
+  },
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const payload = req.body;
+
+      const book = await Book.findByPk(id);
+      if (!book) return res.status(404).json({ mensaje: 'Libro no encontrado' });
+
+      if (payload.categoryId) {
+        const cat = await Category.findByPk(payload.categoryId);
+        if (!cat) return res.status(400).json({ mensaje: 'categoryId inválido' });
+      }
+
+      await book.update(payload);
+
+      if (Array.isArray(payload.tagIds)) {
+        const tags = await Tag.findAll({ where: { id: payload.tagIds } });
+        await book.setTags(tags);
+      }
+
+      const result = await Book.findByPk(book.id, {
+        include: [
+          { model: Category, as: 'category' },
+          { model: Tag, as: 'tags', through: { attributes: [] } }
+        ]
+      });
+
+      res.status(200).json(result);
+    } catch {
+      res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
+  },
+
+  async remove(req, res) {
+    try {
+      const { id } = req.params;
+      const book = await Book.findByPk(id);
+      if (!book) return res.status(404).json({ mensaje: 'Libro no encontrado' });
+
+      await book.destroy();
+      res.status(200).json({ mensaje: 'Libro eliminado' });
+    } catch {
+      res.status(500).json({ mensaje: 'Error interno del servidor' });
+    }
   }
-
-  res.status(200).json({ status: 'success', data: book });
-};
-
-exports.getPublicList = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
-  const result = await findBooks(req.query, parseInt(page), parseInt(limit));
-  res.status(200).json({ status: 'success', data: result });
 };

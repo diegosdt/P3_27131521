@@ -1,11 +1,14 @@
 const Book = require('./book');
-const category = require('./category');
+const Category = require('./category');
 const Tag = require('./tag');
 
-Book.belongsTo(category);
-category.hasMany(Book);
+// Relaciones
+Book.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+Category.hasMany(Book, { foreignKey: 'categoryId', as: 'books' });
 
-Book.belongsToMany(Tag, { through: 'BookTags' });
-Tag.belongsToMany(Book, { through: 'BookTags' });
+Book.belongsToMany(Tag, { through: 'BookTags', as: 'tags' });
+Tag.belongsToMany(Book, { through: 'BookTags', as: 'books' });
 
-module.exports = { Book, category, Tag };
+module.exports = { Book, Category, Tag };
+
+
