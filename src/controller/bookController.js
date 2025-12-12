@@ -25,6 +25,8 @@ module.exports = {
         language, format, categoryId, tagIds = []
       } = req.body;
 
+      console.log('POST /books payload tagIds raw:', req.body.tagIds);
+
       // Validaciones básicas
       if (!title || !author || !publisher) {
         return res.status(400).json({ mensaje: 'title, author y publisher son requeridos' });
@@ -38,6 +40,7 @@ module.exports = {
       let tagIdNums = [];
       if (Array.isArray(tagIds) && tagIds.length) {
         tagIdNums = tagIds.map(id => Number(id)).filter(n => !Number.isNaN(n));
+        console.log('Normalized tagIdNums:', tagIdNums);
         if (!tagIdNums.length) {
           return res.status(400).json({ mensaje: 'tagIds inválidos' });
         }
@@ -56,7 +59,9 @@ module.exports = {
       // Asociar tags usando instancias (si vienen)
       if (tagIdNums.length) {
         const tags = await Tag.findAll({ where: { id: tagIdNums } });
+        console.log('Found tags to associate:', tags.map(t => t.id));
         await book.setTags(tags);
+        console.log('setTags completed for book id', book.id);
       }
 
       // Consultar libro con relaciones

@@ -1,64 +1,54 @@
-// src/builders/BookQueryBuilder.js
+const { Op } = require('sequelize');
+const { Category, Tag } = require('../models');
 
-class BookQueryBuilder {
-  constructor() {
-    this.query = {
-      where: {},
-      offset: 0,
-      limit: 10,
-      include: ['category', 'tags'], // relaciones
-    };
+function buildBookQuery(params = {}) {
+  const { page = 1, limit = 10, search, categoryId, tagIds, minPrice, maxPrice, publisher, language, format } = params;
+
+  const p = Number(page) || 1;
+  const l = Number(limit) || 10;
+
+  const where = {};
+  const include = [
+    { model: Category, as: 'category' },
+    { model: Tag, as: 'tags', through: { attributes: [] } }
+  ];
+
+  if (search) {
+    where[Op.or] = [
+      { title: { [Op.like]: `%${search}%` } },
+      { description: { [Op.like]: `%${search}%` } }
+    ];
   }
 
-  applyPagination(page, limit) {
-    const p = Number(page) || 1;
-    const l = Number(limit) || 10;
-    this.query.offset = (p - 1) * l;
-    this.query.limit = l;
-    return this;
+  if (categoryId) {
+    where.categoryId = Number(categoryId);
   }
 
-  applySearch(search) {
-    if (search) {
-      this.query.where.title = { [Op.like]: `%${search}%` };
-      this.query.where.description = { [Op.like]: `%${search}%` };
+  if (minPrice || maxPrice) {
+    where.price = {};
+    if (minPrice) where.price[Op.gte] = Number(minPrice);
+    if (maxPrice) where.price[Op.lte] = Number(maxPrice);
+  }
+
+  if (publisher) where.publisher = { [Op.like]: `%${publisher}%` };
+  if (language) where.language = { [Op.like]: `%${language}%` };
+  if (format) where.format = { [Op.like]: `%${format}%` };
+
+  // Filtrar por tags: si se solicitan tagIds, ajustamos el include del Tag con where
+  if (tagIds && Array.isArray(tagIds) && tagIds.length) {
+    const ids = tagIds.map(Number).filter(n => !Number.isNaN(n));
+    if (ids.length) {
+      // Reemplazamos el include de tags por uno con filtro
+      include[1] = { model: Tag, as: 'tags', where: { id: { [Op.in]: ids } }, through: { attributes: [] }, required: true };
     }
-    return this;
   }
 
-  applyCategory(categoryId) {
-    if (categoryId) {
-      this.query.where.categoryId = Number(categoryId);
-    }
-    return this;
-  }
-
-  applyTags(tagIds) {
-    if (tagIds && Array.isArray(tagIds)) {
-      this.query.where.tagIds = { [Op.in]: tagIds.map(Number) };
-    }
-    return this;
-  }
-
-  applyPriceRange(min, max) {
-    if (min || max) {
-      this.query.where.price = {};
-      if (min) this.query.where.price[Op.gte] = Number(min);
-      if (max) this.query.where.price[Op.lte] = Number(max);
-    }
-    return this;
-  }
-
-  applyCustomFilters({ publisher, language, format }) {
-    if (publisher) this.query.where.publisher = { [Op.like]: `%${publisher}%` };
-    if (language) this.query.where.language = { [Op.like]: `%${language}%` };
-    if (format) this.query.where.format = { [Op.like]: `%${format}%` };
-    return this;
-  }
-
-  build() {
-    return this.query;
-  }
+  return {
+    where,
+    include,
+    offset: (p - 1) * l,
+    limit: l
+  };
 }
 
-module.exports = BookQueryBuilder;
+module.exports = buildBookQuery;
