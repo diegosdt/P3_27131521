@@ -22,7 +22,7 @@ module.exports = {
       const category = await Category.create({ name, description });
       res.status(201).json(category);
     } catch (err) {
-      console.error("ERROR en POST /categories:", err); // 👈 muestra el error real
+      console.error("ERROR en POST /categories:", err); 
       res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
   },

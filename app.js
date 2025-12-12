@@ -120,6 +120,7 @@ const swaggerOptions = {
             language: "Español",
             format: "Tapa dura",
             categoryId: 1,
+            category: "novela",
             tagIds: [2, 3]
           }
         },

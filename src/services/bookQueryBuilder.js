@@ -1,44 +1,64 @@
-const { Op } = require('sequelize');
+// src/builders/BookQueryBuilder.js
 
-function buildBookQuery(query) {
-  const where = {};
-  const include = [];
-
-  if (query.search) {
-    where[Op.or] = [
-      { title: { [Op.like]: `%${query.search}%` } },
-      { description: { [Op.like]: `%${query.search}%` } }
-    ];
+class BookQueryBuilder {
+  constructor() {
+    this.query = {
+      where: {},
+      offset: 0,
+      limit: 10,
+      include: ['category', 'tags'], // relaciones
+    };
   }
 
-  if (query.price_min || query.price_max) {
-    where.price = {};
-    if (query.price_min) where.price[Op.gte] = parseFloat(query.price_min);
-    if (query.price_max) where.price[Op.lte] = parseFloat(query.price_max);
+  applyPagination(page, limit) {
+    const p = Number(page) || 1;
+    const l = Number(limit) || 10;
+    this.query.offset = (p - 1) * l;
+    this.query.limit = l;
+    return this;
   }
 
-  if (query.author) where.author = query.author;
-  if (query.publisher) where.publisher = query.publisher;
-  if (query.publicationYear) where.publicationYear = query.publicationYear;
-  if (query.language) where.language = query.language;
-  if (query.format) where.format = query.format;
-
-  if (query.category) {
-    include.push({
-      association: 'Category',
-      where: { name: query.category }
-    });
+  applySearch(search) {
+    if (search) {
+      this.query.where.title = { [Op.like]: `%${search}%` };
+      this.query.where.description = { [Op.like]: `%${search}%` };
+    }
+    return this;
   }
 
-  if (query.tags) {
-    const tagIds = query.tags.split(',').map(id => parseInt(id));
-    include.push({
-      association: 'Tags',
-      where: { id: tagIds }
-    });
+  applyCategory(categoryId) {
+    if (categoryId) {
+      this.query.where.categoryId = Number(categoryId);
+    }
+    return this;
   }
 
-  return { where, include };
+  applyTags(tagIds) {
+    if (tagIds && Array.isArray(tagIds)) {
+      this.query.where.tagIds = { [Op.in]: tagIds.map(Number) };
+    }
+    return this;
+  }
+
+  applyPriceRange(min, max) {
+    if (min || max) {
+      this.query.where.price = {};
+      if (min) this.query.where.price[Op.gte] = Number(min);
+      if (max) this.query.where.price[Op.lte] = Number(max);
+    }
+    return this;
+  }
+
+  applyCustomFilters({ publisher, language, format }) {
+    if (publisher) this.query.where.publisher = { [Op.like]: `%${publisher}%` };
+    if (language) this.query.where.language = { [Op.like]: `%${language}%` };
+    if (format) this.query.where.format = { [Op.like]: `%${format}%` };
+    return this;
+  }
+
+  build() {
+    return this.query;
+  }
 }
 
-module.exports = buildBookQuery;
+module.exports = BookQueryBuilder;

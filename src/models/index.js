@@ -1,5 +1,5 @@
 const Book = require('./book');
-const Category = require('./category'); // ✔️ minúscula, igual que el archivo
+const Category = require('./category'); 
 const Tag = require('./tag');
 
 Book.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
