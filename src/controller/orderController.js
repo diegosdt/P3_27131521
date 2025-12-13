@@ -32,6 +32,8 @@ module.exports = {
           const fixed = Object.assign({}, it);
           if (fixed['id de producto'] && !fixed.productId) fixed.productId = fixed['id de producto'];
           if (fixed['id_de_producto'] && !fixed.productId) fixed.productId = fixed['id_de_producto'];
+          if (fixed['product_id'] && !fixed.productId) fixed.productId = fixed['product_id'];
+          if (fixed['product-id'] && !fixed.productId) fixed.productId = fixed['product-id'];
           if (fixed['cantidad'] && !fixed.quantity) fixed.quantity = fixed['cantidad'];
           if (fixed['qty'] && !fixed.quantity) fixed.quantity = fixed['qty'];
           return fixed;
@@ -57,6 +59,10 @@ module.exports = {
       const user = await db.User.findByPk(userId);
       if (!user) return res.status(401).json({ status: 'fail', message: 'Usuario no encontrado' });
 
+      // Validate supported payment method early to avoid 500s
+      const strategy = orderService.getPaymentStrategy(paymentMethod);
+      if (!strategy) return res.status(400).json({ status: 'fail', message: 'Payment method not supported' });
+
       const order = await orderService.createOrder({ userId, items, paymentMethod, paymentDetails });
       res.status(201).json({ status: 'success', data: order });
     } catch (err) {
@@ -65,6 +71,7 @@ module.exports = {
       if (err.message && /Product \d+ not found/.test(err.message)) return res.status(400).json({ status: 'fail', message: err.message });
       if (err.code === 'INVALID_PAYMENT_DETAILS' || (err.message && err.message.startsWith('Invalid payment details'))) return res.status(400).json({ status: 'fail', message: err.message });
       if (err.message === 'Payment failed') return res.status(402).json({ status: 'fail', message: 'Payment failed', detail: err.payment });
+      if (err.message === 'Payment method not supported') return res.status(400).json({ status: 'fail', message: 'Payment method not supported' });
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   },
