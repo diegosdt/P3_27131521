@@ -30,12 +30,31 @@ const controller = require('../controller/orderController');
  *                 items:
  *                   type: object
  *                   properties:
- *                     productId: { type: integer }
- *                     quantity: { type: integer }
+ *                     productId:
+ *                       type: integer
+ *                     quantity:
+ *                       type: integer
  *               paymentMethod:
  *                 type: string
  *               paymentDetails:
  *                 type: object
+ *           examples:
+ *             ejemplo_es:
+ *               summary: Ejemplo en español
+ *               value:
+ *                 artículos:
+ *                   - id de producto: 12
+ *                     cantidad: 1
+ *                 método de pago: "Tarjeta de crédito"
+ *                 detalles de pago:
+ *                   número de tarjeta: "4111111111111111"
+ *                   cvv: "123"
+ *                   mes de vencimiento: "01"
+ *                   año de caducidad: "2024"
+ *                   nombre completo: "APROBADO"
+ *                   moneda: "USD"
+ *                   descripción: "Compra en tienda"
+ *                   referencia: "orden: 12345"
  *     responses:
  *       201:
  *         description: Orden creada

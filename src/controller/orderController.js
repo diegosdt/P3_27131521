@@ -13,26 +13,58 @@ module.exports = {
     try {
       const userId = req.user && req.user.id;
       if (!userId) return res.status(401).json({ mensaje: 'No autorizado' });
-      const { items, paymentMethod, paymentDetails } = req.body;
+      // Accept Spanish payload keys and normalize to internal names
+      const raw = req.body || {};
+      let items = raw.items || raw['artículos'] || raw['articulos'] || [];
+      let paymentMethod = raw.paymentMethod || raw['método de pago'] || raw['metodo de pago'] || raw['metododepago'] || raw['metodo'] || raw.method;
+      let paymentDetails = raw.paymentDetails || raw['detalles de pago'] || raw['detalles_de_pago'] || raw['detalles'];
 
-      // Basic validation of paymentDetails for CreditCard
-      if (!paymentMethod) return res.status(400).json({ status: 'fail', message: 'paymentMethod is required' });
-      if (String(paymentMethod).toLowerCase() === 'creditcard') {
-        if (!paymentDetails || !paymentDetails.cardToken) {
-          return res.status(400).json({ status: 'fail', message: 'paymentDetails.cardToken is required for CreditCard payments' });
-        }
+      // If spanish payment method names are used, map common values
+      if (paymentMethod && typeof paymentMethod === 'string') {
+        const pm = paymentMethod.toLowerCase();
+        if (pm.includes('tarjeta') || pm.includes('credito') || pm.includes('crédito')) paymentMethod = 'CreditCard';
       }
+
+      // Normalize item keys if they come in Spanish
+      if (Array.isArray(items)) {
+        items = items.map(it => {
+          if (!it) return it;
+          const fixed = Object.assign({}, it);
+          if (fixed['id de producto'] && !fixed.productId) fixed.productId = fixed['id de producto'];
+          if (fixed['id_de_producto'] && !fixed.productId) fixed.productId = fixed['id_de_producto'];
+          if (fixed['cantidad'] && !fixed.quantity) fixed.quantity = fixed['cantidad'];
+          if (fixed['qty'] && !fixed.quantity) fixed.quantity = fixed['qty'];
+          return fixed;
+        });
+      }
+
+      // Validate items payload
+      if (!Array.isArray(items) || !items.length) {
+        return res.status(400).json({ status: 'fail', message: 'Items must be a non-empty array' });
+      }
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const pid = Number(it.productId);
+        const qty = Number(it.quantity);
+        if (!Number.isInteger(pid) || pid <= 0) return res.status(400).json({ status: 'fail', message: `Invalid productId at items[${i}]` });
+        if (!Number.isInteger(qty) || qty <= 0) return res.status(400).json({ status: 'fail', message: `Invalid quantity at items[${i}]` });
+        // normalize types back
+        it.productId = pid;
+        it.quantity = qty;
+      }
+
+      // Verify user exists
+      const user = await db.User.findByPk(userId);
+      if (!user) return res.status(401).json({ status: 'fail', message: 'Usuario no encontrado' });
+
       const order = await orderService.createOrder({ userId, items, paymentMethod, paymentDetails });
       res.status(201).json({ status: 'success', data: order });
     } catch (err) {
       console.error('ERROR creating order:', err);
       if (err.message && err.message.startsWith('Insufficient stock')) return res.status(400).json({ status: 'fail', message: err.message });
-      if (err.message === 'Payment failed') {
-        // expose payment errors if available
-        const paymentInfo = err.payment || {};
-        const detail = paymentInfo.data?.errors || paymentInfo.data || paymentInfo.error || null;
-        return res.status(402).json({ status: 'fail', message: 'Payment failed', detail });
-      }
+      if (err.message && /Product \d+ not found/.test(err.message)) return res.status(400).json({ status: 'fail', message: err.message });
+      if (err.code === 'INVALID_PAYMENT_DETAILS' || (err.message && err.message.startsWith('Invalid payment details'))) return res.status(400).json({ status: 'fail', message: err.message });
+      if (err.message === 'Payment failed') return res.status(402).json({ status: 'fail', message: 'Payment failed', detail: err.payment });
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   },
