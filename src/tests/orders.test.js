@@ -82,4 +82,20 @@ describe('Orders - transactional checkout', () => {
     const refreshed = await db.Book.findByPk(book.id);
     expect(refreshed.stock).toBe(3);
   });
+
+  test('accept snake_case product_id in payload', async () => {
+    await request(app).post('/auth/register').send({ fullName: 'S', email: 's@b.com', password: '123456' });
+    const login = await request(app).post('/auth/login').send({ email: 's@b.com', password: '123456' });
+    const token = login.body.data.token;
+
+    const cat = await db.Category.create({ name: 'Scase' });
+    const book = await db.Book.create({ title: 'Snake', author: 'Sn', publisher: 'SnPub', price: 5, stock: 2, categoryId: cat.id });
+
+    const cc = require('../../src/services/payment/creditCardPaymentStrategy');
+    jest.spyOn(cc.prototype, 'processPayment').mockResolvedValue({ success: true, data: {} });
+
+    const res = await request(app).post('/orders').set('Authorization', `Bearer ${token}`).send({ items: [{ product_id: book.id, quantity: 1 }], paymentMethod: 'CreditCard', paymentDetails: { cardToken: 'tok' } });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.data.items.length).toBe(1);
+  });
 });
