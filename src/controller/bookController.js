@@ -1,3 +1,4 @@
+// ...existing code...
 const { Book, Category, Tag } = require('../models');
 
 module.exports = {
@@ -10,7 +11,8 @@ module.exports = {
         ]
       });
       res.status(200).json(books);
-    } catch {
+    } catch (err) {
+      console.error("ERROR en GET /books:", err);
       res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
   },
@@ -23,6 +25,8 @@ module.exports = {
         language, format, categoryId, tagIds = []
       } = req.body;
 
+      console.log('POST /books payload tagIds raw:', req.body.tagIds);
+
       // Validaciones básicas
       if (!title || !author || !publisher) {
         return res.status(400).json({ mensaje: 'title, author y publisher son requeridos' });
@@ -32,16 +36,35 @@ module.exports = {
         if (!cat) return res.status(400).json({ mensaje: 'categoryId inválido' });
       }
 
+      // Normalizar tagIds a array de números y validar existencia
+      let tagIdNums = [];
+      if (Array.isArray(tagIds) && tagIds.length) {
+        tagIdNums = tagIds.map(id => Number(id)).filter(n => !Number.isNaN(n));
+        console.log('Normalized tagIdNums:', tagIdNums);
+        if (!tagIdNums.length) {
+          return res.status(400).json({ mensaje: 'tagIds inválidos' });
+        }
+        const foundTags = await Tag.findAll({ where: { id: tagIdNums } });
+        if (foundTags.length !== tagIdNums.length) {
+          return res.status(400).json({ mensaje: 'Al menos un tagId no existe' });
+        }
+      }
+
+      // Crear libro
       const book = await Book.create({
         title, description, price, stock, author, publisher,
         publicationYear, language, format, categoryId
       });
 
-      if (Array.isArray(tagIds) && tagIds.length) {
-        const tags = await Tag.findAll({ where: { id: tagIds } });
+      // Asociar tags usando instancias (si vienen)
+      if (tagIdNums.length) {
+        const tags = await Tag.findAll({ where: { id: tagIdNums } });
+        console.log('Found tags to associate:', tags.map(t => t.id));
         await book.setTags(tags);
+        console.log('setTags completed for book id', book.id);
       }
 
+      // Consultar libro con relaciones
       const result = await Book.findByPk(book.id, {
         include: [
           { model: Category, as: 'category' },
@@ -50,7 +73,8 @@ module.exports = {
       });
 
       res.status(201).json(result);
-    } catch {
+    } catch (err) {
+      console.error("ERROR en POST /books:", err);
       res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
   },
@@ -68,12 +92,22 @@ module.exports = {
         if (!cat) return res.status(400).json({ mensaje: 'categoryId inválido' });
       }
 
-      await book.update(payload);
-
+      // Si vienen tagIds, validar y asociar antes/después según necesidad
       if (Array.isArray(payload.tagIds)) {
-        const tags = await Tag.findAll({ where: { id: payload.tagIds } });
-        await book.setTags(tags);
+        const tagIdNums = payload.tagIds.map(x => Number(x)).filter(n => !Number.isNaN(n));
+        if (tagIdNums.length) {
+          const foundTags = await Tag.findAll({ where: { id: tagIdNums } });
+          if (foundTags.length !== tagIdNums.length) {
+            return res.status(400).json({ mensaje: 'Al menos un tagId no existe' });
+          }
+          await book.setTags(foundTags);
+        } else {
+          // Si llega un array vacío, limpiar asociaciones
+          await book.setTags([]);
+        }
       }
+
+      await book.update(payload);
 
       const result = await Book.findByPk(book.id, {
         include: [
@@ -83,7 +117,8 @@ module.exports = {
       });
 
       res.status(200).json(result);
-    } catch {
+    } catch (err) {
+      console.error("ERROR en PUT /books/:id:", err);
       res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
   },
@@ -96,8 +131,10 @@ module.exports = {
 
       await book.destroy();
       res.status(200).json({ mensaje: 'Libro eliminado' });
-    } catch {
+    } catch (err) {
+      console.error("ERROR en DELETE /books/:id:", err);
       res.status(500).json({ mensaje: 'Error interno del servidor' });
     }
   }
 };
+// ...existing code...
