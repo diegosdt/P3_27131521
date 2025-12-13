@@ -3,6 +3,3 @@ node_modules/
 .env
 *.sqlite
 coverage/
-
-# ignore worker-specific SQLite DB used during tests
-database-*.sqlite

@@ -64,8 +64,7 @@ module.exports = {
       if (err.message && err.message.startsWith('Insufficient stock')) return res.status(400).json({ status: 'fail', message: err.message });
       if (err.message && /Product \d+ not found/.test(err.message)) return res.status(400).json({ status: 'fail', message: err.message });
       if (err.code === 'INVALID_PAYMENT_DETAILS' || (err.message && err.message.startsWith('Invalid payment details'))) return res.status(400).json({ status: 'fail', message: err.message });
-      // Be resilient: sometimes errors include a payment field or have `Payment failed` message
-      if (err.payment || err.message === 'Payment failed') return res.status(402).json({ status: 'fail', message: 'Payment failed', detail: err.payment || err });
+      if (err.message === 'Payment failed') return res.status(402).json({ status: 'fail', message: 'Payment failed', detail: err.payment });
       res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
   },
