@@ -65,6 +65,11 @@ const bookRoutes = require('./src/routes/books');
 const categoryRoutes = require('./src/routes/categories');
 const tagRoutes = require('./src/routes/tags');
 const orderRoutes = require('./src/routes/orders');
+// Internal diagnostics (only active if INTERNAL_SECRET is set)
+if (process.env.INTERNAL_SECRET) {
+  const internalRoutes = require('./src/routes/internal');
+  app.use('/internal', internalRoutes);
+}
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
