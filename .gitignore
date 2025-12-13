@@ -3,3 +3,6 @@ node_modules/
 .env
 *.sqlite
 coverage/
+
+# Ignore test worker DB files
+database-*.sqlite

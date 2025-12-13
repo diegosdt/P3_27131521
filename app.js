@@ -8,9 +8,8 @@ const sequelize = require('./src/config/database');
 require('./src/models');
 
 // Sincronización de la base de datos
-// En entorno de test dejamos que los tests controlen el `sync` para evitar
-// condiciones de carrera entre `beforeAll` en los tests y el `sync` asíncrono
-// que ocurre al requerir `app`. En otros entornos ejecutamos el sync automáticamente.
+// No ejecutar el sync automático en entorno de test para que los tests
+// (que llaman `sequelize.sync({ force: true })`) controlen la sincronización
 if (process.env.NODE_ENV !== 'test') {
   // Por seguridad no ejecutamos `alter: true` por defecto al iniciar.
   // Si realmente quieres aplicar alteraciones automáticas, exporta

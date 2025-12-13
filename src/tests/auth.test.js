@@ -1,8 +1,11 @@
 const request = require('supertest');
 const sequelize = require('../config/database');
+const models = require('../models');
 
 let app;
 beforeAll(async () => {
+  // ensure models are registered on the sequelize instance
+  require('../models');
   await sequelize.sync({ force: true });
   // require app after DB is ready to avoid race conditions
   app = require('../../app');
