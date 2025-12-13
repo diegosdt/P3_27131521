@@ -7,6 +7,8 @@ let app;
 jest.setTimeout(20000);
 
 beforeAll(async () => {
+  // Ensure models exist on the Sequelize instance before syncing
+  require('../models');
   await sequelize.sync({ force: true });
   app = require('../../app');
 });

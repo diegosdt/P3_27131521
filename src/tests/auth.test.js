@@ -3,7 +3,12 @@ const sequelize = require('../config/database');
 
 let app;
 beforeAll(async () => {
+  // Ensure models are registered with the Sequelize instance before syncing
+  require('../models');
   await sequelize.sync({ force: true });
+  // Diagnostics
+  console.log('TEST diagnostics: JEST_WORKER_ID=', process.env.JEST_WORKER_ID, 'NODE_ENV=', process.env.NODE_ENV);
+  try { console.log('Sequelize storage path:', sequelize.options && sequelize.options.storage); } catch(e) {}
   // require app after DB is ready to avoid race conditions
   app = require('../../app');
 });

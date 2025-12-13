@@ -8,13 +8,18 @@ const sequelize = require('./src/config/database');
 require('./src/models');
 
 // Sincronización de la base de datos
-// Por seguridad no ejecutamos `alter: true` por defecto al iniciar.
-// Si realmente quieres aplicar alteraciones automáticas, exporta
-// la variable de entorno `DB_ALTER=true` (solo en desarrollo).
-const syncOptions = process.env.DB_ALTER === 'true' ? { alter: true } : {};
-sequelize.sync(syncOptions)
-  .then(() => console.log('Base de datos sincronizada'))
-  .catch(err => console.error('Error al sincronizar DB:', err));
+// En entorno de test dejamos que los tests controlen el `sync` para evitar
+// condiciones de carrera entre `beforeAll` en los tests y el `sync` asíncrono
+// que ocurre al requerir `app`. En otros entornos ejecutamos el sync automáticamente.
+if (process.env.NODE_ENV !== 'test') {
+  // Por seguridad no ejecutamos `alter: true` por defecto al iniciar.
+  // Si realmente quieres aplicar alteraciones automáticas, exporta
+  // la variable de entorno `DB_ALTER=true` (solo en desarrollo).
+  const syncOptions = process.env.DB_ALTER === 'true' ? { alter: true } : {};
+  sequelize.sync(syncOptions)
+    .then(() => console.log('Base de datos sincronizada'))
+    .catch(err => console.error('Error al sincronizar DB:', err));
+}
 
 const app = express();
 
