@@ -1,9 +1,15 @@
 const request = require('supertest');
-const app = require('../../app');
 const sequelize = require('../config/database');
 const db = require('../models');
 
+let app;
+
 jest.setTimeout(20000);
+
+beforeAll(async () => {
+  await sequelize.sync({ force: true });
+  app = require('../../app');
+});
 
 beforeEach(async () => {
   await sequelize.sync({ force: true });
