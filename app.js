@@ -16,7 +16,19 @@ if (process.env.NODE_ENV !== 'test') {
   // la variable de entorno `DB_ALTER=true` (solo en desarrollo).
   const syncOptions = process.env.DB_ALTER === 'true' ? { alter: true } : {};
   sequelize.sync(syncOptions)
-    .then(() => console.log('Base de datos sincronizada'))
+    .then(() => {
+      console.log('Base de datos sincronizada');
+      if (process.env.CREATE_SEED_USER === 'true') {
+        try {
+          const createSeedUser = require('./scripts/create_seed_user');
+          createSeedUser({ email: process.env.SEED_EMAIL, password: process.env.SEED_PASSWORD, fullName: process.env.SEED_FULLNAME })
+            .then(res => console.log('Seed user ensured:', res && res.user && res.user.email))
+            .catch(err => console.error('Error creating seed user:', err));
+        } catch (err) {
+          console.error('Error requiring seed script:', err);
+        }
+      }
+    })
     .catch(err => console.error('Error al sincronizar DB:', err));
 }
 
