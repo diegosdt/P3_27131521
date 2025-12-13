@@ -1,8 +1,12 @@
 const request = require('supertest');
-const app = require('../../app');
 const sequelize = require('../config/database');
 
-beforeAll(async () => await sequelize.sync({ force: true }));
+let app;
+beforeAll(async () => {
+  await sequelize.sync({ force: true });
+  // require app after DB is ready to avoid race conditions
+  app = require('../../app');
+});
 
 describe('Auth endpoints', () => {
   test('Registro exitoso', async () => {

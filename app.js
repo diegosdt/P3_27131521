@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const cors = require('cors');
 const sequelize = require('./src/config/database');
+// Importar modelos para que se registren en la instancia de sequelize
+require('./src/models');
 
 // Sincronización de la base de datos
 // Por seguridad no ejecutamos `alter: true` por defecto al iniciar.
