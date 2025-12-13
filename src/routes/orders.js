@@ -43,7 +43,7 @@ const controller = require('../controller/orderController');
  *               summary: Ejemplo en español
  *               value:
  *                 artículos:
- *                   - id de producto: 12
+ *                   - id de producto: 1
  *                     cantidad: 1
  *                 método de pago: "Tarjeta de crédito"
  *                 detalles de pago:
