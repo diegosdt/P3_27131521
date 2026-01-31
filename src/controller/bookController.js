@@ -4,13 +4,12 @@ const { Book, Category, Tag } = require('../models');
 module.exports = {
   async getAll(req, res) {
     try {
-      const books = await Book.findAll({
-        include: [
-          { model: Category, as: 'category' },
-          { model: Tag, as: 'tags', through: { attributes: [] } }
-        ]
-      });
-      res.status(200).json(books);
+      const query = req.query || {};
+      const page = Number(query.page) || 1;
+      const limit = Number(query.limit) || 10;
+      const { findBooks } = require('../repositories/bookRepository');
+      const result = await findBooks(query, page, limit);
+      res.status(200).json(result);
     } catch (err) {
       console.error("ERROR en GET /books:", err);
       res.status(500).json({ mensaje: 'Error interno del servidor' });

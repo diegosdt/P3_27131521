@@ -3,7 +3,8 @@ const router = express.Router();
 const auth = require('../middlewares/authMiddleware');
 const controller = require('../controller/bookController');
 
-router.get('/', auth, controller.getAll);
+// GET público: listado paginado y filtrable de libros
+router.get('/', controller.getAll);
 router.post('/', auth, controller.create);
 router.put('/:id', auth, controller.update);
 router.delete('/:id', auth, controller.remove);
@@ -12,13 +13,51 @@ router.delete('/:id', auth, controller.remove);
  * @swagger
  * /books:
  *   get:
- *     tags: [Admin - Books]
- *     security:
- *       - bearerAuth: []
- *     summary: Lista todos los libros
+ *     tags: [Public - Books]
+ *     summary: Lista paginada y filtrable de libros (pública)
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Número de página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Elementos por página
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Texto a buscar en título o descripción
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: publisher
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: format
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
- *         description: Lista de libros
+ *         description: Lista paginada de libros
  */
 /**
  * @swagger

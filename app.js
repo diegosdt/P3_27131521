@@ -51,7 +51,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // CORS para desarrollo y producción
 app.use(cors({
-  origin: ['https://p3-27131521.onrender.com', 'http://localhost:3000'],
+  origin: ['https://p3-27131521.onrender.com', 'http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
@@ -65,6 +65,19 @@ const bookRoutes = require('./src/routes/books');
 const categoryRoutes = require('./src/routes/categories');
 const tagRoutes = require('./src/routes/tags');
 const orderRoutes = require('./src/routes/orders');
+
+// In development avoid caching of API responses to prevent 304 on reloads that make fetch() fail
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    // Only affect API JSON responses
+    if (req.method === 'GET') {
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Pragma', 'no-cache');
+    }
+    next();
+  });
+}
+
 // Internal diagnostics (only active if INTERNAL_SECRET is set)
 if (process.env.INTERNAL_SECRET) {
   const internalRoutes = require('./src/routes/internal');
@@ -300,6 +313,74 @@ app.get('/about', function(req, res) {
  */
 app.get('/ping', function(req, res) {
   res.status(200).json({ estado: '200 OK' });
+});
+
+// Servir frontend (build) si existe - producción
+const clientDist = path.join(__dirname, 'client', 'dist');
+const fs = require('fs');
+if (fs.existsSync(clientDist)) {
+  // Evitar caché agresiva en desarrollo para evitar que el navegador use builds antiguos
+  app.use(express.static(clientDist, {
+    setHeaders: (res, p) => {
+      if (process.env.NODE_ENV !== 'production') {
+        res.setHeader('Cache-Control', 'no-store');
+      } else {
+        if (p.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+      }
+      res.setHeader('X-Served-From', 'client-dist');
+    }
+  }));
+  // Si la ruta no coincide con una API y acepta HTML, devolvemos index.html
+  app.get('*', function(req, res, next) {
+    const accept = req.headers.accept || '';
+    console.log(`Serving clientDist index for path: ${req.path} (accept: ${accept})`);
+    if (req.method === 'GET' && accept.includes('text/html') && !req.path.startsWith('/api-docs')) {
+      // Ensure index.html is not cached by browsers during development so a stale public landing
+      // cannot be reused when users reload SPA routes.
+      if (process.env.NODE_ENV !== 'production') {
+        res.setHeader('Cache-Control', 'no-store');
+      } else {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+      res.setHeader('X-Served-From', 'client-dist-index');
+      // Send the index file content explicitly to avoid Express/Node conditional GET (304)
+      try {
+        const indexHtml = fs.readFileSync(path.join(clientDist, 'index.html'), 'utf8');
+        res.status(200).type('html').send(indexHtml);
+      } catch (err) {
+        console.error('Error sending index.html from clientDist:', err);
+        return res.status(500).send('Error loading application');
+      }
+      return;
+    }
+    next();
+  });
+} else {
+  console.warn('Warning: client/dist not found. The server will serve public/ (landing) for HTML routes. Run `npm run build:client`.');
+}
+
+// Servir también los assets estáticos de la carpeta public (landing)
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, p) => {
+    if (process.env.NODE_ENV !== 'production') res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Served-From', 'public');
+  }
+}));
+
+// Ruta explícita para la landing (public/index.html) - permite enviar al usuario a la página de marketing
+app.get('/landing', function(req, res) {
+  console.log('Serving public landing for /landing path');
+  return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Endpoint diagnóstico para verificar si la build cliente está presente y ver el entorno
+app.get('/_status', (req, res) => {
+  try {
+    const clientExists = fs.existsSync(clientDist);
+    return res.json({ ok: true, clientDistExists: clientExists, nodeEnv: process.env.NODE_ENV || 'undefined' });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: String(err) });
+  }
 });
 
 // Manejo de rutas no encontradas
