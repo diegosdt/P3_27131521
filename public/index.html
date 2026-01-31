@@ -1,13 +1,486 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="es">
 <head>
-  <title>Express</title>
-  <link rel="stylesheet" href="/stylesheets/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letras Vivas - Tu tienda de libros online</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --success: #27ae60;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header y navegación */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-family: 'Merriweather', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            color: var(--secondary);
+            margin-right: 10px;
+        }
+        
+        .logo span {
+            color: var(--accent);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1.5rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            padding: 5px 0;
+        }
+        
+        nav ul li a:hover {
+            color: var(--secondary);
+        }
+        
+        /* Hero section */
+        .hero {
+            background: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.9)), url('https://images.unsplash.com/photo-1497636577773-f1231844b336?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 5rem 1rem;
+            margin-bottom: 3rem;
+        }
+        
+        .hero h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 3.2rem;
+            margin-bottom: 1rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+        
+        .btn-hero {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-hero:hover {
+            background-color: #c0392b;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Sección de información */
+        .info-section {
+            padding: 3rem 0;
+            background-color: white;
+            margin-bottom: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-family: 'Merriweather', serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 4px;
+            background-color: var(--secondary);
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .info-card {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .info-card i {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .info-card h3 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        /* Catálogo de libros */
+        .books-section {
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .book-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .book-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+        
+        .book-image {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .book-content {
+            padding: 1.5rem;
+        }
+        
+        .book-category {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .book-title {
+            font-family: 'Merriweather', serif;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            height: 3.5rem;
+            overflow: hidden;
+        }
+        
+        .book-author {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        
+        .book-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 1rem;
+        }
+        
+        .btn-buy {
+            display: block;
+            width: 100%;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .btn-buy:hover {
+            background-color: #2980b9;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 3rem 0 1.5rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: var(--light);
+        }
+        
+        .footer-column p, .footer-column a {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 0.8rem;
+            display: block;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: var(--secondary);
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .social-icons a:hover {
+            background-color: var(--secondary);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 1.5rem;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 0 0.8rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
-
 <body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
-</body>
+    <!-- Header con navegación -->
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">
+                <i class="fas fa-book-open"></i>
+                Letras<span>Vivas</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#libros">Libros</a></li>
+                    <li><a href="#informacion">Información</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
+    <!-- Hero section -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <h1>Descubre mundos nuevos a través de las páginas</h1>
+            <p>En Letras Vivas encontrarás una cuidadosa selección de libros de todos los géneros. Desde clásicos atemporales hasta las novedades más esperadas, tenemos el libro perfecto para ti.</p>
+            <a href="/Home" class="btn-hero">Explorar Catálogo</a>
+        </div>
+    </section>
+
+    <!-- Sección de información importante -->
+    <section class="info-section" id="informacion">
+        <div class="container">
+            <h2 class="section-title">¿Por qué leer es importante?</h2>
+            <div class="info-cards">
+                <div class="info-card">
+                    <i class="fas fa-brain"></i>
+                    <h3>Estimula la mente</h3>
+                    <p>La lectura regular mejora la función cerebral, aumenta la concentración y desarrolla el pensamiento crítico. Mantener la mente activa puede incluso retrasar el deterioro cognitivo.</p>
+                </div>
+                
+                <div class="info-card">
+                    <i class="fas fa-heart"></i>
+                    <h3>Reduce el estrés</h3>
+                    <p>Sumergirse en una buena historia puede reducir el estrés hasta en un 68%. Solo 6 minutos de lectura son suficientes para relajar los músculos y disminuir el ritmo cardíaco.</p>
+                </div>
+                
+                <div class="info-card">
+                    <i class="fas fa-language"></i>
+                    <h3>Amplía tu vocabulario</h3>
+                    <p>Los lectores regulares tienen un vocabulario más amplio y mejores habilidades de comunicación. Esto puede traducirse en ventajas profesionales y personales significativas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+                
+
+    <!-- Footer -->
+    <footer id="contacto">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Letras Vivas</h3>
+                    <p>Tu tienda de libros online con la mejor selección de títulos. Creemos en el poder transformador de la lectura.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-goodreads"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Enlaces rápidos</h3>
+                    <a href="#inicio">Inicio</a>
+                    <a href="#libros">Catálogo de libros</a>
+                    <a href="#informacion">Importancia de leer</a>
+                    <a href="#">Política de privacidad</a>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Contacto</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Calle de los Libros, 123</p>
+                    <p><i class="fas fa-phone"></i> +34 912 345 678</p>
+                    <p><i class="fas fa-envelope"></i> info@letrasvivas.com</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Letras Vivas - Todos los derechos reservados</p>
+            </div>
+        </div>
+    </footer>
+
+   
+</body>
 </html>

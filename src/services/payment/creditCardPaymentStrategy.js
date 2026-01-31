@@ -8,7 +8,7 @@ class CreditCardPaymentStrategy extends PaymentStrategy {
   }
 
   async processPayment(paymentDetails) {
-    // paymentDetails should includeeee amount, currency, cardToken, etc.
+    // paymentDetails should include amount, currency, cardToken, etc.
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
